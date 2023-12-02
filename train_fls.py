@@ -69,7 +69,7 @@ valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_w
 test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
 
-class PetModel(pl.LightningModule):
+class SegModel(pl.LightningModule):
 
     def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
         super().__init__()
@@ -176,7 +176,7 @@ class PetModel(pl.LightningModule):
 
     def on_train_epoch_end(self):
         #import pdb; pdb.set_trace()
-        print("train epch end")
+        #print("train epch end")
         op = self.shared_epoch_end(self.train_step_ops, "train")
         self.train_step_ops.clear()  # free mem
         return op
@@ -186,10 +186,11 @@ class PetModel(pl.LightningModule):
         self.val_step_ops.append(op)
         return op
 
-    def on_validation_epoch_nd(self):
-        print("validation epoch end")
+    def on_validation_epoch_end(self):
+        #print("validation epoch end")
+        #import pdb; pdb.set_trace()
         op = self.shared_epoch_end(self.val_step_ops, "valid")
-        self.train_step_ops.clear()
+        self.val_step_ops.clear()
         return op
 
     def test_step(self, batch, batch_idx):
@@ -205,13 +206,15 @@ class PetModel(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.0001)
 
-model = PetModel("FPN", "resnet34", in_channels=3, out_classes=1)
 
 
+model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1)
 
 trainer = pl.Trainer(
     accelerator="auto", 
-    max_epochs=1,
+    max_epochs=25,
+    #limit_train_batches = 0.1,
+    #limit_val_batches = 0.1
 )
 
 
@@ -221,7 +224,8 @@ trainer.fit(
     val_dataloaders=valid_dataloader,
 )
 
-valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=False)
+#import pdb; pdb.set_trace()
+valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=True)
 pprint(valid_metrics)
 
 test_metrics = trainer.test(model, dataloaders=test_dataloader, verbose=False)
