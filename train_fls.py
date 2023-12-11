@@ -13,20 +13,6 @@ import glob
 import cv2
 
 
-transform_train = transforms.Compose([
-                transforms.ToPILImage(),
-                            transforms.ToTensor(),
-                                                    ])
-
-#data_root = "/scratch/rc5124/datasets/tissuenet"
-#train_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_train.npz"))
-#val_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_val.npz"))
-#test_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_test.npz"))
-
-#data_dicts = {"train": {"X": train_data_dict["X"], "y": train_data_dict["y"]},
-#        "val": {"X": val_data_dict["X"], "y": val_data_dict["y"]},
-#        "test": {"X": test_data_dict["X"], "y": test_data_dict["y"]}}
-
 class TissueNetNucleus(Dataset):
     def __init__(self, split, transform=None):
         self.transforms = transform
@@ -45,28 +31,6 @@ class TissueNetNucleus(Dataset):
 
     def __len__(self):
         return len(self.imgs)
-
-train_dataset = TissueNetNucleus( "train", transform=transform_train)
-valid_dataset = TissueNetNucleus( "val", transform=transform_train)
-test_dataset = TissueNetNucleus( "test", transform=transform_train)
-
-
-print(f"Train size: {len(train_dataset)}")
-print(f"Valid size: {len(valid_dataset)}")
-print(f"Test size: {len(test_dataset)}")
-
-
-transform_train = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.ToTensor(),
-                        ])
-
-transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
-
-n_cpu = os.cpu_count()
-train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=n_cpu)
-valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
-test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
 
 class SegModel(pl.LightningModule):
@@ -207,27 +171,45 @@ class SegModel(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=0.0001)
 
 
+if __name__ == "__main__":
+    transform_train = transforms.Compose([
+                        transforms.ToPILImage(),
+                        transforms.ToTensor(),
+                                    ])
+    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
 
-model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1)
+    train_dataset = TissueNetNucleus( "train", transform=transform_train)
+    valid_dataset = TissueNetNucleus( "val", transform=transform_train)
+    test_dataset = TissueNetNucleus( "test", transform=transform_train)
 
-trainer = pl.Trainer(
-    accelerator="auto", 
-    max_epochs=25,
-    #limit_train_batches = 0.1,
-    #limit_val_batches = 0.1
-)
+    print(f"Train size: {len(train_dataset)}")
+    print(f"Valid size: {len(valid_dataset)}")
+    print(f"Test size: {len(test_dataset)}")
 
+    n_cpu = os.cpu_count()
+    
+    train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=n_cpu)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
+    test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
-trainer.fit(
-    model, 
-    train_dataloaders=train_dataloader, 
-    val_dataloaders=valid_dataloader,
-)
+    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1)
 
-#import pdb; pdb.set_trace()
-valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=True)
-pprint(valid_metrics)
+    trainer = pl.Trainer(
+        accelerator="auto", 
+        max_epochs=25,
+        #limit_train_batches = 0.1,
+        #limit_val_batches = 0.1
+    )
 
-test_metrics = trainer.test(model, dataloaders=test_dataloader, verbose=False)
-pprint(test_metrics)
+    trainer.fit(
+        model, 
+        train_dataloaders=train_dataloader, 
+        val_dataloaders=valid_dataloader,
+    )
+
+    valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=True)
+    pprint(valid_metrics)
+
+    test_metrics = trainer.test(model, dataloaders=test_dataloader, verbose=False)
+    pprint(test_metrics)
 
