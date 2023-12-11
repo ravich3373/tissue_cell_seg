@@ -67,7 +67,7 @@ def create_rgb_image(input_data, channel_colors):
     return rgb_data
 
 
-data_root = "/scratch/rc5124/datasets/tissuenet"
+data_root = "/scratch/rc5124/datasets/lupus/amp/"
 
 
 train_split = [("1150", "AMP_1150_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy"),
@@ -87,7 +87,7 @@ splits = [train_split, val_split]
 
 for split, split_fls in zip(["train", "val"], [train_split, val_split]):
     for id, fl in split_fls:
-        img = np.load(fl).squeeze()
+        img = np.load(os.path.join(data_root, fl)).squeeze()
         split_dir = f"lupus_{split}"
         img_patches = patchify(img, (224,224,3), step=224)
         img_patches = img_patches.squeeze()
