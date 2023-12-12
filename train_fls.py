@@ -150,7 +150,12 @@ class SegModel(pl.LightningModule):
         self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
+        opt = self.optimizers()["optimizer"]
+        opt.zero_grad()
         op = self.shared_step(batch, "train")
+        loss = op["loss"]
+        self.manual_backward(loss)
+        opt.step()
         self.train_step_ops.append(op)
         return op
 
