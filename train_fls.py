@@ -53,7 +53,7 @@ class SegModel(pl.LightningModule):
     def __init__(self, arch, encoder_name, in_channels, out_classes, lr=0.001, **kwargs):
         super().__init__()
         self.lr = lr
-        self.automatic_optimization = False
+        #self.automatic_optimization = False
         self.model = smp.create_model(
             arch, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs
         )
@@ -151,12 +151,12 @@ class SegModel(pl.LightningModule):
         self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
-        opt = self.optimizers()["optimizer"]
-        opt.zero_grad()
+        #opt = self.optimizers().optimizer
+        #opt.zero_grad()
         op = self.shared_step(batch, "train")
-        loss = op["loss"]
-        self.manual_backward(loss)
-        opt.step()
+        #loss = op["loss"]
+        #self.manual_backward(loss)
+        #opt.step()
         self.train_step_ops.append(op)
         return op
 
@@ -189,21 +189,22 @@ class SegModel(pl.LightningModule):
         self.test_step_ops.clear()
         return op
 
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0001)
+    #def configure_optimizers(self):
+    #    return torch.optim.Adam(self.parameters(), lr=0.0001)
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=self.lr)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": ReduceLROnPlateau(optimizer, mode="max", ),
-                "monitor": "valid_dataset_iou",
-                "frequency": 1
-                # If "monitor" references validation metrics, then "frequency" should be set to a
-                # multiple of "trainer.check_val_every_n_epoch".
-            },
-        }
+        optimizer = Adam(self.parameters(), lr=self.lr)
+        #return {
+        #    "optimizer": optimizer,
+        #    "lr_scheduler": {
+        #        "scheduler": ReduceLROnPlateau(optimizer, mode="max", ),
+        #        "monitor": "valid_dataset_iou",
+        #        "frequency": 1
+        #        # If "monitor" references validation metrics, then "frequency" should be set to a
+        #        # multiple of "trainer.check_val_every_n_epoch".
+        #    },
+        #}
+        return optimizer
 
 if __name__ == "__main__":
     args = parse_args()
@@ -223,10 +224,10 @@ if __name__ == "__main__":
     print(f"Test size: {len(test_dataset)}")
 
     n_cpu = os.cpu_count()
-    
-    train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=n_cpu)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
-    test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
+    print(f"cpu count is {n_cpu}") 
+    train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=8)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=8)
+    test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=8)
 
     model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, lr=args.lr, encoder_weights=args.resnet_enc)
     
