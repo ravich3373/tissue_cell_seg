@@ -11,6 +11,15 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 import glob
 import cv2
+from argparse import ArgumentParser
+
+
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument("--init_model", required=False, default=None)
+    parser.add_argument("--resnet_enc", required=False, default=False, action="store_true")
+    parser.add_argument("--lupus", required=False, default=False, action="store_true")
+    return parser.parse_args()
 
 
 class TissueNetNucleus(Dataset):
@@ -172,15 +181,16 @@ class SegModel(pl.LightningModule):
 
 
 if __name__ == "__main__":
+    args = parse_args()
     transform_train = transforms.Compose([
                         transforms.ToPILImage(),
                         transforms.ToTensor(),
                                     ])
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
 
-    train_dataset = TissueNetNucleus( "train", transform=transform_train)
-    valid_dataset = TissueNetNucleus( "val", transform=transform_train)
-    test_dataset = TissueNetNucleus( "test", transform=transform_train)
+    train_dataset = TissueNetNucleus( f"train", transform=transform_train)
+    valid_dataset = TissueNetNucleus( f"val", transform=transform_train)
+    test_dataset = TissueNetNucleus( f"test", transform=transform_train)
 
     print(f"Train size: {len(train_dataset)}")
     print(f"Valid size: {len(valid_dataset)}")
@@ -192,7 +202,11 @@ if __name__ == "__main__":
     valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
     test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
-    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, encoder_weights=None)
+    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, encoder_weights=args.resnet_enc)
+    
+    if args.init_model is not None:
+        w = torch.load(args.init_model)
+        model.load_state_dict(w["state_dict"])
 
     trainer = pl.Trainer(
         accelerator="auto", 
