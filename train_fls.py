@@ -13,6 +13,8 @@ import glob
 import cv2
 from argparse import ArgumentParser
 from pytorch_lightning import loggers as pl_loggers
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim import Adam
 
 
 def parse_args():
@@ -22,6 +24,7 @@ def parse_args():
     parser.add_argument("--lupus", required=False, default=False, action="store_true")
     parser.add_argument("--epochs", required=False, default=25)
     parser.add_argument("--log_dir", required=False, default="logs")
+    parser.add_argument("--lr", required=False, default=0.001)
     return parser.parse_args()
 
 
@@ -47,8 +50,9 @@ class TissueNetNucleus(Dataset):
 
 class SegModel(pl.LightningModule):
 
-    def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
+    def __init__(self, arch, encoder_name, in_channels, out_classes, lr=0.001, **kwargs):
         super().__init__()
+        self.lr = lr
         self.model = smp.create_model(
             arch, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs
         )
@@ -182,6 +186,18 @@ class SegModel(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.0001)
 
+    def configure_optimizers(self):
+        optimizer = Adam(self.model.parameters(), lr=self.lr)
+        return {
+            "optimizer": optimizer,
+            # "lr_scheduler": {
+            #     "scheduler": ReduceLROnPlateau(optimizer, ...),
+            #     "monitor": "metric_to_track",
+            #     "frequency": "indicates how often the metric is updated"
+            #     # If "monitor" references validation metrics, then "frequency" should be set to a
+            #     # multiple of "trainer.check_val_every_n_epoch".
+            # },
+        }
 
 if __name__ == "__main__":
     args = parse_args()
@@ -206,7 +222,7 @@ if __name__ == "__main__":
     valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
     test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
-    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, encoder_weights=args.resnet_enc)
+    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, lr=args.lr, encoder_weights=args.resnet_enc)
     
     if args.init_model is not None:
         w = torch.load(args.init_model)
