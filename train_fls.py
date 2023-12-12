@@ -12,6 +12,7 @@ from torchvision import transforms
 import glob
 import cv2
 from argparse import ArgumentParser
+from lightning.pytorch import loggers as pl_loggers
 
 
 def parse_args():
@@ -19,6 +20,8 @@ def parse_args():
     parser.add_argument("--init_model", required=False, default=None)
     parser.add_argument("--resnet_enc", required=False, default=False, action="store_true")
     parser.add_argument("--lupus", required=False, default=False, action="store_true")
+    parser.add_argument("--epochs", required=False, default=25)
+    parser.add_argument("--log_dir", required=False, default="logs")
     return parser.parse_args()
 
 
@@ -182,6 +185,7 @@ class SegModel(pl.LightningModule):
 
 if __name__ == "__main__":
     args = parse_args()
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=args.log_dir)
     transform_train = transforms.Compose([
                         transforms.ToPILImage(),
                         transforms.ToTensor(),
@@ -210,7 +214,8 @@ if __name__ == "__main__":
 
     trainer = pl.Trainer(
         accelerator="auto", 
-        max_epochs=25,
+        max_epochs=args.epochs,
+        logger=tb_logger,
         #limit_train_batches = 0.1,
         #limit_val_batches = 0.1
     )
