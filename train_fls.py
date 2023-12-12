@@ -192,7 +192,7 @@ if __name__ == "__main__":
     valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
     test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=n_cpu)
 
-    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1)
+    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, encoder_weights=None)
 
     trainer = pl.Trainer(
         accelerator="auto", 
