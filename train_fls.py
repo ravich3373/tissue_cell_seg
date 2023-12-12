@@ -12,7 +12,7 @@ from torchvision import transforms
 import glob
 import cv2
 from argparse import ArgumentParser
-from lightning.pytorch import loggers as pl_loggers
+from pytorch_lightning import loggers as pl_loggers
 
 
 def parse_args():
