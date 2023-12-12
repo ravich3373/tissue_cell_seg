@@ -53,6 +53,7 @@ class SegModel(pl.LightningModule):
     def __init__(self, arch, encoder_name, in_channels, out_classes, lr=0.001, **kwargs):
         super().__init__()
         self.lr = lr
+        self.automatic_optimization = False
         self.model = smp.create_model(
             arch, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs
         )
