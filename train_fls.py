@@ -190,13 +190,13 @@ class SegModel(pl.LightningModule):
         optimizer = Adam(self.model.parameters(), lr=self.lr)
         return {
             "optimizer": optimizer,
-            # "lr_scheduler": {
-            #     "scheduler": ReduceLROnPlateau(optimizer, ...),
-            #     "monitor": "metric_to_track",
-            #     "frequency": "indicates how often the metric is updated"
-            #     # If "monitor" references validation metrics, then "frequency" should be set to a
-            #     # multiple of "trainer.check_val_every_n_epoch".
-            # },
+            "lr_scheduler": {
+                "scheduler": ReduceLROnPlateau(optimizer, mode="max", ),
+                "monitor": "valid_dataset_iou",
+                "frequency": 1
+                # If "monitor" references validation metrics, then "frequency" should be set to a
+                # multiple of "trainer.check_val_every_n_epoch".
+            },
         }
 
 if __name__ == "__main__":
