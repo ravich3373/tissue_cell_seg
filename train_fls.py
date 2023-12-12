@@ -18,7 +18,7 @@ from pytorch_lightning import loggers as pl_loggers
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--init_model", required=False, default=None)
-    parser.add_argument("--resnet_enc", required=False, default=False, action="store_true")
+    parser.add_argument("--resnet_enc", required=False, default=None, action="store_true")
     parser.add_argument("--lupus", required=False, default=False, action="store_true")
     parser.add_argument("--epochs", required=False, default=25)
     parser.add_argument("--log_dir", required=False, default="logs")
