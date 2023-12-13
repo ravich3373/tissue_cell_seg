@@ -71,11 +71,13 @@ data_root = "/scratch/rc5124/datasets/lupus/amp/"
 
 
 train_split = [("1150", "AMP_1150_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy"),
-               ("1154", "AMP_1154_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy"),
-               ("1156", "AMP_1156_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy")]
-val_split = [("1158", "AMP_1158_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy")]
+               ("1154", "AMP_1154_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy")]
 
-splits = [train_split, val_split]
+val_split = [("1156", "AMP_1156_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy")]
+test_split = [("1158", "AMP_1158_Ch1Cy1-CD34,CD45,Fascin,b-catenin,Vimentin_input_image_merged.npy")]
+
+
+splits = [train_split, val_split, test_split]
 #train_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_train.npz"))
 #val_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_val.npz"))
 #test_data_dict = np.load(os.path.join(data_root, f"tissuenet_v1.1_test.npz"))
@@ -85,7 +87,7 @@ splits = [train_split, val_split]
 #                        "test": {"X": test_data_dict["X"], "y": test_data_dict["y"]}}
 
 
-for split, split_fls in zip(["train", "val"], [train_split, val_split]):
+for split, split_fls in zip(["train", "val", "test"], [train_split, val_split, test_split]):
     for id, fl in split_fls:
         img = np.load(os.path.join(data_root, fl)).squeeze()
         split_dir = f"lupus_{split}"

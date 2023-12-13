@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument("--init_model", required=False, default=None)
     parser.add_argument("--resnet_enc", required=False, default=None, action="store_true")
     parser.add_argument("--lupus", required=False, default=False, action="store_true")
-    parser.add_argument("--epochs", required=False, default=25)
+    parser.add_argument("--epochs", required=False, default=25, type=int)
     parser.add_argument("--log_dir", required=False, default="logs")
     parser.add_argument("--lr", required=False, default=0.001)
     return parser.parse_args()
@@ -50,9 +50,9 @@ class TissueNetNucleus(Dataset):
 
 class SegModel(pl.LightningModule):
 
-    def __init__(self, arch, encoder_name, in_channels, out_classes, lr=0.001, **kwargs):
+    def __init__(self, arch, encoder_name, in_channels, out_classes, **kwargs):
         super().__init__()
-        self.lr = lr
+        #self.lr = 0.001
         #self.automatic_optimization = False
         self.model = smp.create_model(
             arch, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs
@@ -189,11 +189,11 @@ class SegModel(pl.LightningModule):
         self.test_step_ops.clear()
         return op
 
-    #def configure_optimizers(self):
-    #    return torch.optim.Adam(self.parameters(), lr=0.0001)
-
     def configure_optimizers(self):
-        optimizer = Adam(self.parameters(), lr=self.lr)
+        return torch.optim.Adam(self.parameters(), lr=0.00001)
+
+    #def configure_optimizers(self):
+    #    optimizer = Adam(self.parameters(), lr=0.001)
         #return {
         #    "optimizer": optimizer,
         #    "lr_scheduler": {
@@ -204,7 +204,7 @@ class SegModel(pl.LightningModule):
         #        # multiple of "trainer.check_val_every_n_epoch".
         #    },
         #}
-        return optimizer
+    #    return optimizer
 
 if __name__ == "__main__":
     args = parse_args()
@@ -215,9 +215,9 @@ if __name__ == "__main__":
                                     ])
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
 
-    train_dataset = TissueNetNucleus( f"train", transform=transform_train)
-    valid_dataset = TissueNetNucleus( f"val", transform=transform_train)
-    test_dataset = TissueNetNucleus( f"test", transform=transform_train)
+    train_dataset = TissueNetNucleus( f"lupus_train", transform=transform_train)
+    valid_dataset = TissueNetNucleus( f"lupus_val", transform=transform_train)
+    test_dataset = TissueNetNucleus( f"lupus_test", transform=transform_train)
 
     print(f"Train size: {len(train_dataset)}")
     print(f"Valid size: {len(valid_dataset)}")
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     valid_dataloader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=8)
     test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=8)
 
-    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, lr=args.lr, encoder_weights=args.resnet_enc)
+    model = SegModel("FPN", "resnet34", in_channels=3, out_classes=1, encoder_weights=args.resnet_enc)
     
     if args.init_model is not None:
         w = torch.load(args.init_model)
@@ -243,11 +243,11 @@ if __name__ == "__main__":
         #limit_val_batches = 0.1
     )
 
-    trainer.fit(
-        model, 
-        train_dataloaders=train_dataloader, 
-        val_dataloaders=valid_dataloader,
-    )
+    #trainer.fit(
+    #    model, 
+    #    train_dataloaders=train_dataloader, 
+    #    val_dataloaders=valid_dataloader,
+    #)
 
     valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=True)
     pprint(valid_metrics)
