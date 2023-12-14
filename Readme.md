@@ -1,3 +1,9 @@
+
+# Environment Setup
+
+1. requirements.txt will Added.
+
+
 # Dataset Preparation
 
 1. mkdata.py prepares Tissuenet data.
