@@ -99,6 +99,7 @@ for split, split_fls in zip(["train", "val", "test"], [train_split, val_split, t
                 fl = f"lupus_{split}/{str(r).zfill(4)},{str(col).zfill(4)}.png"
                 msk_fl = f"lupus_{split}/{str(r).zfill(4)},{str(col).zfill(4)}_msk.png"
                 img_data = img_patches[r, col, ...].squeeze()
+                img_data = (img_data * 255).astype(np.int8)
                 cv2.imwrite(fl, img_data)
                 mask = (img_data[:,:,2] > 0.75).astype(np.int8)
                 cv2.imwrite(msk_fl, mask)

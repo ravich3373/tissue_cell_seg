@@ -243,11 +243,11 @@ if __name__ == "__main__":
         #limit_val_batches = 0.1
     )
 
-    #trainer.fit(
-    #    model, 
-    #    train_dataloaders=train_dataloader, 
-    #    val_dataloaders=valid_dataloader,
-    #)
+    trainer.fit(
+       model, 
+       train_dataloaders=train_dataloader, 
+       val_dataloaders=valid_dataloader,
+    )
 
     valid_metrics = trainer.validate(model, dataloaders=valid_dataloader, verbose=True)
     pprint(valid_metrics)

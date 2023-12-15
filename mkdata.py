@@ -89,6 +89,7 @@ for split in ["train", "val", "test"]:
         fl = f"{split}/{str(i).zfill(5)}.png"
         msk_fl = f"{split}/{str(i).zfill(5)}_msk.png"
         img_data = rgb_data[i,...].squeeze()
+        img_data = (img_data * 255).astype(np.int8)
         cv2.imwrite(fl, img_data)
         msk_data = y[i,:,:,1] # cell masks
         cv2.imwrite(msk_fl, msk_data)
